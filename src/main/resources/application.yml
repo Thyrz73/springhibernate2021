@@ -1,0 +1,6 @@
+# Spring MVC settings
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp

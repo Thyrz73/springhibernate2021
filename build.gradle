@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+    // The SpringBoot plugin
+    id 'org.springframework.boot' version '2.4.2'
+    // The Spring dependency management plugin - avoids defining versions for Spring dependencies
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+}
+
+sourceCompatibility = 1.8 // build in Java 8
+targetCompatibility = 1.8 // run in Java 8
+
+def springframeworkVersion = '5.2.3.RELEASE'
+
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+
+    // -- Partie I -- //
+
+    // Add Spring core, context and ORM modules to the project
+    //implementation "org.springframework:spring-core:${springframeworkVersion}"
+    //implementation "org.springframework:spring-context:${springframeworkVersion}"
+
+    // An in-memory h2 database to test the application without the need for a real database
+    //implementation group: 'com.h2database', name: 'h2', version: '1.3.148'
+    // The driver to connect to a real MySQL database
+    //implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.18'
+
+    // -- Partie II -- //
+    // Uncomment the following line to add Hibernate to the project
+    implementation 'org.hibernate:hibernate-core:5.4.10.Final'
+
+    // -- Partie III -- //
+    implementation "org.springframework:spring-orm:${springframeworkVersion}"
+
+    // -- Partie IV -- //
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper' // loads JSP pages
+    implementation 'org.hibernate:hibernate-core:5.4.10.Final' // add Hibernate
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+test {
+    useJUnitPlatform()
+}
