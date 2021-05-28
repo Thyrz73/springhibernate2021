@@ -6,12 +6,14 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
-
+// Il faut activer le TransactionManager /
+@EnableTransactionManagement
 public class TransactionManager {
 
     @Bean
@@ -28,8 +30,10 @@ public class TransactionManager {
     public DataSource dataSource() {
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/hibernate?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false& serverTimezone=UTC");
+        //dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        //dataSource.setUrl("jdbc:mysql://localhost:3306/hibernate?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false& serverTimezone=UTC");
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUrl("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1");
         dataSource.setUsername("root");
         dataSource.setPassword("");
 
@@ -50,7 +54,8 @@ public class TransactionManager {
                 //"hibernate.hbm2ddl.auto", "create-drop");
                 "hibernate.hbm2ddl.auto", "update");
         hibernateProperties.setProperty(
-                "hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+                //"hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+                  "hibernate.dialect", "org.hibernate.dialect.H2Dialect"); // pour correction
 
         // Bind one session per request : configures SessionFactory.useCurrentSession()
         hibernateProperties.setProperty(

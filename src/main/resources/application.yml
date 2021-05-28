@@ -1,3 +1,4 @@
+server.port: 8090
 # Spring MVC settings
 spring:
   mvc:

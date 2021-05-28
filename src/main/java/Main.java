@@ -3,6 +3,8 @@ import org.epsi.Bean.Produit;
 import org.epsi.Bean.Utilisateur;
 import org.epsi.Dao.ProduitDao;
 import org.epsi.Dao.UtilisateurDao;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -15,6 +17,9 @@ public class Main {
 
             SpringApplication.run(Application.class, args);
 
+            // Attention : ce code crï¿½e une 2e appli Spring !
+            // S'il s'agit de code de production (et non de code de test), on pourrait utiliser un
+            // CommandLineRunner comme dans la classe Application
             ApplicationContext appContext = new AnnotationConfigApplicationContext("org.epsi");
 
             ProduitDao produitDao = appContext.getBean(ProduitDao.class);
@@ -34,32 +39,71 @@ public class Main {
             Produit produit2 = new Produit();
             produit2.setNom("poivre"); produit2.setCodeProduit("888juk621"); produit2.setQuantite(25); produit2.setDatePeremption("2020/02/12");
 
-            //Creation des produits dans la BDD
-            produitDao.saveP(produit);
-            produitDao.saveP(produit1);
-            produitDao.saveP(produit2);
+            // Ce code n'est pas dans l'appli Spring Boot (voir commentaire prï¿½cï¿½dent) : il faut donc
+            // gï¿½nï¿½rer les transactions ï¿½ la main.
+            // Crï¿½ation d'une 1ere transaction pour crï¿½er les objets...
+            Transaction transaction = appContext.getBean(SessionFactory.class)
+                    .getCurrentSession()
+                    .beginTransaction();
+            try {
+                    // init code : everything can run in the same session
 
-            // Mise à jour d'un produit
-            produit.setNom("sucre roux");
-            produitDao.updateP(produit);
+                    //Creation des produits dans la BDD
+                    produitDao.saveP(produit);
+                    produitDao.saveP(produit1);
+                    produitDao.saveP(produit2);
 
-            // Suppression d'un produit
-            produitDao.deleteP(produit2);
+                    // Mise ï¿½ jour d'un produit
+                    produit.setNom("sucre roux");
+                    produitDao.updateP(produit);
 
-           // Listing des produits
-            List<Produit> ListP = produitDao.listProduits();
-            for (Produit p : ListP){
-                    System.out.println("Liste de Produits :: " + p.toString());
+                    // Suppression d'un produit
+                    produitDao.deleteP(produit2);
+
+                    // Commit the transaction (exec BDD queries)
+                    transaction.commit();
+
+            } catch (Exception ex) {
+                    // Catch all exceptions => we always want to rollback the transaction...
+                    transaction.rollback();
+                    // ...but leak the exception afterwards
+                    throw ex;
             }
-            // Création d'un compte utilisateur
-            Utilisateur utilisateur = new Utilisateur();
-            utilisateur.setNom("Dupont"); utilisateur.setPrenom("Roger");
-            utilisateur.setEmail("roger.dupont@hotmail.fr"); utilisateur.setAdresse("1 rue de la Paix");
-            utilisateur.setMotDePasse("Roger38");
-
-            //Création de l'utilisateur dans la BDD
-            utilisateurDao.save(utilisateur);
 
 
-        }
+
+            // ...et une 2e transaction pour lister les objets en base
+            Transaction transaction2 = appContext.getBean(SessionFactory.class)
+                    .getCurrentSession()
+                    .beginTransaction();
+            try {
+
+                    // Listing des produits
+                    List<Produit> ListP = produitDao.listProduits();
+                    for (Produit p : ListP) {
+                            System.out.println("Liste de Produits :: " + p.toString());
+                    }
+                    // Crï¿½ation d'un compte utilisateur
+                    Utilisateur utilisateur = new Utilisateur();
+                    utilisateur.setNom("Dupont");
+                    utilisateur.setPrenom("Roger");
+                    utilisateur.setEmail("roger.dupont@hotmail.fr");
+                    utilisateur.setAdresse("1 rue de la Paix");
+                    utilisateur.setMotDePasse("Roger38");
+
+                    //Crï¿½ation de l'utilisateur dans la BDD
+                    utilisateurDao.save(utilisateur);
+
+                    // Commit the transaction (exec BDD queries)
+                    transaction2.commit();
+
+            } catch (Exception ex) {
+                    // Catch all exceptions => we always want to rollback the transaction...
+                    transaction2.rollback();
+                    // ...but leak the exception afterwards
+                    throw ex;
+            }
+
+
+    }
 }
